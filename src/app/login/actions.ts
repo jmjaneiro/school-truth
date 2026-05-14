@@ -16,7 +16,21 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  return { success: true }
+  // Verificar se o utilizador já tem avaliações (has_reviewed)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('has_reviewed')
+      .eq('id', user.id)
+      .maybeSingle()
+    
+    if (profile?.has_reviewed) {
+      return { success: true, redirect: '/resultados' }
+    }
+  }
+
+  return { success: true, redirect: '/onboarding' }
 }
 
 export async function signup(formData: FormData) {
@@ -53,7 +67,7 @@ export async function signup(formData: FormData) {
     }
   }
 
-  return { success: true }
+  return { success: true, redirect: '/onboarding' }
 }
 
 import { redirect } from 'next/navigation'

@@ -27,7 +27,7 @@ export default function LoginPage() {
         setSuccessMessage((result as any).message);
         setIsLoading(false);
       } else if (result?.success) {
-        window.location.href = '/onboarding';
+        window.location.href = (result as any).redirect || '/onboarding';
       }
     } catch (err) {
       setError("Ocorreu um erro ao comunicar com o servidor.");
