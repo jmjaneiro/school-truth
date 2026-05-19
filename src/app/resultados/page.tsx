@@ -24,9 +24,10 @@ const MIN_RESPONSES: Record<string, number> = {
 export default async function ResultadosPage({
   searchParams,
 }: {
-  searchParams: { distrito?: string; concelho?: string; localidade?: string; ciclo?: string; natureza?: string };
+  searchParams: { distrito?: string; concelho?: string; localidade?: string; ciclo?: string; natureza?: string; demo?: string };
 }) {
   const supabase = await createClient();
+  const isDemo = searchParams.demo === '1';
 
   // Filtros Base
   const distrito = searchParams.distrito;
@@ -62,7 +63,7 @@ export default async function ResultadosPage({
     );
     
     const count = relevantReviews.length;
-    const threshold = ciclo ? (MIN_RESPONSES[ciclo] || 15) : 15;
+    const threshold = isDemo ? 1 : (ciclo ? (MIN_RESPONSES[ciclo] || 15) : 15);
     
     let finalScore: number | null = null;
     if (count >= threshold) {
