@@ -167,7 +167,7 @@ export default async function ResultadosPage({
       </header>
       
       {/* Componente Client-Side que gere o Toggle Lista/Mapa e os Filtros */}
-      <ResultsView initialData={processedData || []} />
+      <ResultsView initialData={processedData || []} isDemo={isDemo} />
     </div>
   );
 }

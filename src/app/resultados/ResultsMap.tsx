@@ -41,11 +41,13 @@ const HEX_COLORS: Record<string, string> = {
 export default function ResultsMap({ 
   locations, 
   correctionMode,
+  isDemo = false,
   onCancelCorrection,
   onStartCorrection
 }: { 
   locations: any[],
   correctionMode?: string | null,
+  isDemo?: boolean,
   onCancelCorrection?: () => void,
   onStartCorrection?: (id: string) => void
 }) {
@@ -147,7 +149,7 @@ export default function ResultsMap({
                     
                     <div className="flex flex-col gap-2">
                       {loc.score !== null && (
-                        <a href={`/escola/${loc.id}`} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors block text-center">
+                        <a href={`/escola/${loc.id}${isDemo ? '?demo=1' : ''}`} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors block text-center">
                           Ver Relatório Completo
                         </a>
                       )}

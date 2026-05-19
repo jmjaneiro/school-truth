@@ -11,7 +11,7 @@ const ResultsMap = dynamic(() => import('./ResultsMap'), {
   loading: () => <div className="w-full h-96 bg-slate-900 animate-pulse flex items-center justify-center text-slate-500">A carregar mapa...</div>
 })
 
-export default function ResultsView({ initialData }: { initialData: any[] }) {
+export default function ResultsView({ initialData, isDemo = false }: { initialData: any[], isDemo?: boolean }) {
   const [view, setView] = useState<'list' | 'map'>('list')
   const [filterNatureza, setFilterNatureza] = useState('todas')
   const [searchQuery, setSearchQuery] = useState('')
@@ -119,7 +119,7 @@ export default function ResultsView({ initialData }: { initialData: any[] }) {
                   
                   <div className="flex gap-2 w-full sm:w-auto">
                     {escola.score !== null && (
-                      <Link href={`/escola/${escola.id}`} className="flex-1 sm:flex-none px-6 py-3 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/20 rounded-xl font-bold transition-colors text-sm text-center">
+                      <Link href={`/escola/${escola.id}${isDemo ? '?demo=1' : ''}`} className="flex-1 sm:flex-none px-6 py-3 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/20 rounded-xl font-bold transition-colors text-sm text-center">
                         Ver Perfil
                       </Link>
                     )}
@@ -132,6 +132,7 @@ export default function ResultsView({ initialData }: { initialData: any[] }) {
           <div className="flex-grow min-h-[600px] w-full relative">
             <ResultsMap 
               locations={filteredData} 
+              isDemo={isDemo}
               correctionMode={correctionMode}
               onCancelCorrection={() => setCorrectionMode(null)}
               onStartCorrection={(id) => setCorrectionMode(id)}
