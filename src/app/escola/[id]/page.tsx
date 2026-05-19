@@ -214,16 +214,20 @@ function calculateScore(reviews: any[], level: string) {
   };
 }
 
-export default async function SchoolReportPage({ params, searchParams }: { params: { id: string }, searchParams?: { demo?: string } }) {
+export default async function SchoolReportPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams?: Promise<{ demo?: string }> }) {
+  const { id } = await params;
+  const searchParamsResolved = searchParams ? await searchParams : null;
+  const isDemo = searchParamsResolved?.demo === '1';
+
   const supabase = await createClient();
-  const { data: school } = await supabase.from('estabelecimentos').select('*').eq('id', params.id).single();
+  const { data: school } = await supabase.from('estabelecimentos').select('*').eq('id', id).single();
   
   if (!school) {
     return <div className="p-12 text-center text-xl">Escola não encontrada.</div>;
   }
 
   // Get most recent school level from the school's reviews to format logic
-  const { data: reviews } = await supabase.from('reviews').select('*').eq('school_id', params.id);
+  const { data: reviews } = await supabase.from('reviews').select('*').eq('school_id', id);
   const safeReviews = reviews || [];
   const level = safeReviews.length > 0 ? safeReviews[0].school_level : 'primeiro_ciclo';
 
@@ -245,7 +249,6 @@ export default async function SchoolReportPage({ params, searchParams }: { param
   const { label: qualLabel, emoji: qualEmoji } = getQualitativeLabel(bayesianScore);
 
   // Ocultar dados se a amostra for muito baixa (<15), a menos que estejamos em modo demo
-  const isDemo = searchParams?.demo === '1';
   const isHidden = !isDemo && totalCount < 15;
   const isEarly = totalCount >= 15 && totalCount <= 30;
 

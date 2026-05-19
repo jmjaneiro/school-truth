@@ -24,15 +24,16 @@ const MIN_RESPONSES: Record<string, number> = {
 export default async function ResultadosPage({
   searchParams,
 }: {
-  searchParams: { distrito?: string; concelho?: string; localidade?: string; ciclo?: string; natureza?: string; demo?: string };
+  searchParams: Promise<{ distrito?: string; concelho?: string; localidade?: string; ciclo?: string; natureza?: string; demo?: string }>;
 }) {
   const supabase = await createClient();
-  const isDemo = searchParams.demo === '1';
+  const searchParamsResolved = await searchParams;
+  const isDemo = searchParamsResolved.demo === '1';
 
   // Filtros Base
-  const distrito = searchParams.distrito;
-  const concelho = searchParams.concelho;
-  const ciclo = searchParams.ciclo && searchParams.ciclo !== 'todos' ? searchParams.ciclo : null;
+  const distrito = searchParamsResolved.distrito;
+  const concelho = searchParamsResolved.concelho;
+  const ciclo = searchParamsResolved.ciclo && searchParamsResolved.ciclo !== 'todos' ? searchParamsResolved.ciclo : null;
 
   // Query Estabelecimentos: usamos reviews!inner para forçar que devolva APENAS escolas com avaliações
   let query = supabase
