@@ -262,12 +262,12 @@ export default async function SchoolReportPage({ params, searchParams }: { param
           muted
           playsInline
           preload="none"
-          className="absolute inset-0 w-full h-full object-cover opacity-[0.15] grayscale contrast-125"
+          className="absolute inset-0 w-full h-full object-cover opacity-50 invert grayscale contrast-125 brightness-110"
         >
           <source src="/media/map.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/90 via-slate-50/80 to-slate-50"></div>
-        <div className="absolute inset-0 bg-[url('/textures/noise.svg')] opacity-[0.03] mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 via-slate-50/70 to-slate-50/90"></div>
+        <div className="absolute inset-0 bg-[url('/textures/noise.svg')] opacity-5 mix-blend-multiply"></div>
       </div>
 
       <header className="bg-white/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-md">
