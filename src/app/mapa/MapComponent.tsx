@@ -62,33 +62,45 @@ export default function MapComponent() {
   }, []);
 
   return (
-    <MapContainer center={[39.3999, -8.2245]} zoom={6} className="absolute inset-0 w-full h-full z-0">
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-      />
-      {errorMsg && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-rose-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-xl border border-rose-400">
-          Erro de Dados: {errorMsg}
-        </div>
-      )}
-      {locations.map(loc => (
-        <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={customIcon}>
-          <Popup className="rounded-xl overflow-hidden shadow-2xl border-0">
-            <div className="font-sans p-1">
-              <h3 className="font-bold text-slate-800 text-lg mb-1 leading-tight">{loc.name}</h3>
-              <p className="text-blue-600 font-bold text-sm mb-4 bg-blue-50 inline-block px-2 py-1 rounded-md">
-                {loc.count} Avaliações de Pais
-              </p>
-              <button 
-                onClick={() => router.push(`/escola/${loc.id}`)}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-colors">
-                Ver Relatório
-              </button>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+    <>
+      <video 
+        autoPlay preload="none" loop muted playsInline 
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 mix-blend-screen pointer-events-none"
+      >
+        <source src="/media/map.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-[url('/textures/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay z-0 pointer-events-none"></div>
+
+      <MapContainer center={[39.3999, -8.2245]} zoom={6} className="absolute inset-0 w-full h-full z-10" style={{ background: 'transparent' }}>
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          className="map-tiles"
+          opacity={0.6}
+        />
+        {errorMsg && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-rose-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-xl border border-rose-400">
+            Erro de Dados: {errorMsg}
+          </div>
+        )}
+        {locations.map(loc => (
+          <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={customIcon}>
+            <Popup className="rounded-xl overflow-hidden shadow-2xl border-0">
+              <div className="font-sans p-1">
+                <h3 className="font-bold text-slate-800 text-lg mb-1 leading-tight">{loc.name}</h3>
+                <p className="text-blue-600 font-bold text-sm mb-4 bg-blue-50 inline-block px-2 py-1 rounded-md">
+                  {loc.count} Avaliações de Pais
+                </p>
+                <button 
+                  onClick={() => router.push(`/escola/${loc.id}`)}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-colors">
+                  Ver Relatório
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </>
   )
 }

@@ -93,15 +93,25 @@ export default function ResultsMap({
 
   return (
     <>
+      <video 
+        autoPlay preload="none" loop muted playsInline 
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 mix-blend-screen pointer-events-none rounded-2xl"
+      >
+        <source src="/media/map.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-[url('/textures/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay z-0 pointer-events-none rounded-2xl"></div>
+
       <MapContainer 
         key={correctionMode || 'default'} // força re-render para focar
         center={defaultCenter} 
         zoom={correctionMode ? 16 : 11} 
-        className="absolute inset-0 w-full h-full z-0 rounded-2xl shadow-inner"
+        className="absolute inset-0 w-full h-full z-10 rounded-2xl shadow-inner"
+        style={{ background: 'transparent' }}
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          opacity={0.6}
         />
         
         {locations.map(loc => {
