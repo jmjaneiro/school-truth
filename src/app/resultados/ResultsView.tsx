@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { List, Map as MapIcon, GraduationCap, Building2 } from "lucide-react"
+import { List, Map as MapIcon, GraduationCap, Building2, Search } from "lucide-react"
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
@@ -14,11 +14,21 @@ const ResultsMap = dynamic(() => import('./ResultsMap'), {
 export default function ResultsView({ initialData }: { initialData: any[] }) {
   const [view, setView] = useState<'list' | 'map'>('list')
   const [filterNatureza, setFilterNatureza] = useState('todas')
+  const [searchQuery, setSearchQuery] = useState('')
   const [correctionMode, setCorrectionMode] = useState<string | null>(null)
 
   // Aplica filtros locais
   const filteredData = initialData.filter(d => {
     if (filterNatureza !== 'todas' && d.natureza !== filterNatureza) return false
+    
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase()
+      const matchNome = d.nome.toLowerCase().includes(q)
+      const matchLocalidade = (d.localidade || '').toLowerCase().includes(q)
+      const matchConcelho = (d.concelho || '').toLowerCase().includes(q)
+      if (!matchNome && !matchLocalidade && !matchConcelho) return false
+    }
+    
     return true
   })
 
@@ -46,12 +56,24 @@ export default function ResultsView({ initialData }: { initialData: any[] }) {
 
           {/* Filtros Rapidos */}
           <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            {/* Barra de Pesquisa */}
+            <div className="relative flex-grow sm:max-w-xs">
+              <Search className="absolute left-3 top-2.5 text-slate-500 w-4 h-4" />
+              <input 
+                type="text"
+                placeholder="Pesquisar escola ou localidade..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-300 placeholder-slate-600 focus:border-blue-500 focus:outline-none transition-colors"
+              />
+            </div>
+
             <div className="relative flex-shrink-0">
               <Building2 className="absolute left-3 top-2.5 text-slate-500 w-4 h-4" />
               <select 
                 value={filterNatureza}
                 onChange={e => setFilterNatureza(e.target.value)}
-                className="pl-9 pr-8 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-300 font-medium focus:border-blue-500 appearance-none"
+                className="pl-9 pr-8 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-300 font-medium focus:border-blue-500 appearance-none focus:outline-none"
               >
                 <option value="todas">Qualquer Natureza</option>
                 <option value="publica">Rede Pública</option>
