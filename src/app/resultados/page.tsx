@@ -50,8 +50,8 @@ export default async function ResultadosPage({
     return <div className="p-8 text-white">Erro ao carregar dados.</div>;
   }
 
-  // Constantes para Bayesian Averaging (consistentes com /escola/[id])
-  const GLOBAL_AVERAGE = 65;
+  // Constantes para Bayesian Averaging (escala 1-5, max=5)
+  const GLOBAL_AVERAGE = 70;
   const K_FACTOR = 10;
   const SPEED_THRESHOLD_MS = 30000;
 
@@ -82,13 +82,16 @@ export default async function ResultadosPage({
         if (ageMonths > 24) decayWeight = 0.3;
         else if (ageMonths > 12) decayWeight = 0.6;
 
-        // Somar todos os pontos de perguntas (P1 a P45, excluindo metadata)
+        // Somar todos os pontos de perguntas (P1 a P45 + NPS), excluindo N/A e comentários
         Object.entries(r.answers || {}).forEach(([key, val]) => {
-          if (key.startsWith('P') || key === 'nps_recomendacao') {
-            const points = Number(val);
-            if (!isNaN(points)) {
-              totalPoints += points * decayWeight;
-              totalMaxPoints += 3 * decayWeight; // Max é 3 por pergunta
+          // Excluir metadata, comentários por pergunta e valores null (N/A)
+          if ((key.startsWith('P') || key === 'nps_recomendacao') && !key.includes('_comentario')) {
+            if (val !== null && val !== undefined) {
+              const points = Number(val);
+              if (!isNaN(points) && points >= 1) {
+                totalPoints += points * decayWeight;
+                totalMaxPoints += 5 * decayWeight; // Max é 5 por pergunta (escala Likert 1-5)
+              }
             }
           }
         });

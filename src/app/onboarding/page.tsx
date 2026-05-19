@@ -1,34 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ArrowLeft, CheckCircle2, School, GraduationCap, User } from "lucide-react";
+import { ArrowRight, CheckCircle2, School, GraduationCap, User, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { getQuestionsForLevel, Question } from "./questions";
+import { getQuestionsForLevel, LIKERT_OPTIONS, Question } from "./questions";
 import LocationSelector from "@/components/LocationSelector";
 
 export default function OnboardingWizard() {
   const router = useRouter();
   
-  // States
-  const [step, setStep] = useState(-1); // -1: Setup, 0-14: Cards, 15: Final
+  const [step, setStep] = useState(-1);
   const [schoolData, setSchoolData] = useState({ 
     id: "", name: "", codigo: "", natureza: "", level: "pre_escolar", childNickname: "",
     distrito: "", concelho: "", localidade: ""
   });
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number | null>>({});
+  const [comments, setComments] = useState<Record<string, string>>({});
   const [textReview, setTextReview] = useState("");
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [direction, setDirection] = useState(1); // 1 = right, -1 = left for animations
+  const [direction, setDirection] = useState(1);
   const [startTime, setStartTime] = useState<number>(0);
+  const [showComment, setShowComment] = useState(false);
 
   const getBgVideo = () => {
     switch (schoolData.level) {
       case "pre_escolar": return "/media/creche.mp4";
-      case "1_ciclo": return "/media/primaria.mp4";
-      case "2_3_ciclo": return "/media/eb.mp4";
+      case "primeiro_ciclo": return "/media/primaria.mp4";
+      case "segundo_terceiro_ciclo": return "/media/eb.mp4";
       case "secundario": return "/media/secundaria.mp4";
       default: return "/media/primaria.mp4";
     }
@@ -54,22 +55,42 @@ export default function OnboardingWizard() {
     setQuestions(getQuestionsForLevel(schoolData.level));
     setStep(0);
     setStartTime(Date.now());
+    setShowComment(false);
   };
 
-  const handleAnswer = (questionId: string, value: number, dir: number) => {
-    setDirection(dir);
+  const handleAnswer = (questionId: string, value: number | null) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
-    setTimeout(() => setStep(s => s + 1), 50); // slight delay to allow state batching
+  };
+
+  const goNext = () => {
+    const currentQ = questions[step];
+    if (answers[currentQ.id] === undefined) return; // obrigar a responder
+    setDirection(1);
+    setShowComment(false);
+    setTimeout(() => setStep(s => s + 1), 50);
+  };
+
+  const goPrev = () => {
+    if (step === 0) return;
+    setDirection(-1);
+    setShowComment(false);
+    setTimeout(() => setStep(s => s - 1), 50);
   };
 
   const submitReview = async () => {
     setIsSubmitting(true);
     try {
       const timeTakenMs = Date.now() - startTime;
+      // Incluir comentários por pergunta no objeto answers
+      const answersWithComments: Record<string, any> = { ...answers };
+      Object.entries(comments).forEach(([key, val]) => {
+        if (val.trim()) answersWithComments[`${key}_comentario`] = val.trim();
+      });
+
       const { submitReview: submitAction } = await import('./actions');
       const res = await submitAction({
         ...schoolData,
-        answers,
+        answers: answersWithComments,
         textReview,
         contactConsent: consent,
         timeTakenMs
@@ -94,9 +115,9 @@ export default function OnboardingWizard() {
   };
 
   const cardVariants = {
-    initial: (dir: number) => ({ x: dir * 300, opacity: 0, rotate: dir * 10 }),
-    animate: { x: 0, opacity: 1, rotate: 0 },
-    exit: (dir: number) => ({ x: dir * -300, opacity: 0, rotate: dir * -10 })
+    initial: (dir: number) => ({ x: dir * 300, opacity: 0 }),
+    animate: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir * -300, opacity: 0 })
   };
 
   // ─── SETUP SCREEN ────────────────────────────────────────────────────────────
@@ -118,7 +139,7 @@ export default function OnboardingWizard() {
                 <select 
                   className="w-full pl-12 pr-5 py-4 text-lg rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500 appearance-none"
                   value={schoolData.level}
-                  onChange={(e) => setSchoolData({...schoolData, level: e.target.value, id: "", name: ""})} // Reseta a escola ao mudar o ciclo
+                  onChange={(e) => setSchoolData({...schoolData, level: e.target.value, id: "", name: ""})}
                 >
                   <option value="pre_escolar">Pré-escolar (Creche / JI)</option>
                   <option value="primeiro_ciclo">1º Ciclo</option>
@@ -172,8 +193,6 @@ export default function OnboardingWizard() {
               </div>
             )}
 
-
-
             <div>
               <label className="block text-sm font-bold text-slate-400 mb-2">Inicial do Filho/a (Para o caso de ter vários)</label>
               <div className="relative">
@@ -209,13 +228,14 @@ export default function OnboardingWizard() {
         {bgVideoComponent}
         <div className="w-full max-w-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10">
           <h2 className="text-3xl font-black text-white mb-4 tracking-tight">Opinião Aberta</h2>
-          <p className="text-slate-400 mb-8">O que gostaria que a direção lesse e mudasse amanhã?</p>
+          <p className="text-slate-400 mb-8">Há algo que gostaria de acrescentar sobre a experiência do seu filho nesta escola?</p>
           
           <textarea 
-            className="w-full p-6 text-lg rounded-2xl border border-slate-800 focus:border-blue-500 bg-slate-950 text-white resize-none h-48 mb-8"
-            placeholder="A sua resposta é 100% anónima..."
+            className="w-full p-6 text-base rounded-2xl border border-slate-800 focus:border-blue-500 bg-slate-950 text-white resize-none h-40 mb-8"
+            placeholder="A sua resposta é 100% anónima... (opcional)"
             onChange={(e) => setTextReview(e.target.value)}
             value={textReview}
+            maxLength={2000}
           ></textarea>
 
           <label className="flex items-start gap-3 p-4 border border-slate-800 rounded-xl bg-slate-950/50 cursor-pointer hover:border-blue-500/50 transition-colors mb-8">
@@ -242,25 +262,28 @@ export default function OnboardingWizard() {
     );
   }
 
-  // ─── CARD SWIPE SCREEN ──────────────────────────────────────────────────────
+  // ─── QUESTION CARD SCREEN ──────────────────────────────────────────────────
   const currentQ = questions[step];
-  const progress = ((step) / questions.length) * 100;
+  const progress = (step / questions.length) * 100;
+  const currentAnswer = answers[currentQ.id];
+  const hasAnswer = currentAnswer !== undefined;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center px-6 py-12 overflow-hidden relative">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center px-4 py-8 overflow-hidden relative">
       {bgVideoComponent}
-      {/* Header & Progress */}
-      <div className="w-full max-w-xl mb-12 flex items-center justify-between z-10">
-        <div className="flex-grow mr-8">
-          <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+
+      {/* Progress */}
+      <div className="w-full max-w-xl mb-6 flex items-center justify-between z-10">
+        <div className="flex-grow mr-6">
+          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${progress}%` }}></div>
           </div>
         </div>
-        <span className="text-sm font-bold text-slate-500">{step + 1} de {questions.length}</span>
+        <span className="text-sm font-bold text-slate-500 shrink-0">{step + 1} / {questions.length}</span>
       </div>
 
-      {/* Card Area */}
-      <div className="relative w-full max-w-md h-[500px] flex items-center justify-center">
+      {/* Card */}
+      <div className="relative w-full max-w-xl flex-grow flex flex-col z-10">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={currentQ.id}
@@ -269,32 +292,88 @@ export default function OnboardingWizard() {
             initial="initial"
             animate="animate"
             exit="exit"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-[2rem] p-8 shadow-2xl flex flex-col h-full"
+            transition={{ type: "spring", stiffness: 350, damping: 35 }}
+            className="w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col"
           >
-            <div className="mb-auto">
-              <div className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-2">
-                {Array.isArray(currentQ.sub_dimensao) ? currentQ.sub_dimensao.join(" & ").replace(/_/g, " ") : currentQ.sub_dimensao.replace(/_/g, " ")}
-              </div>
-              <h3 className="text-2xl font-black text-white leading-tight">{currentQ.texto}</h3>
+            {/* Dimensão */}
+            <div className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-3">
+              {Array.isArray(currentQ.sub_dimensao)
+                ? currentQ.sub_dimensao.join(" & ").replace(/_/g, " ")
+                : currentQ.sub_dimensao.replace(/_/g, " ")}
             </div>
 
-            <div className="flex flex-col gap-3 mt-8">
-              {currentQ.opcoes.map((opt, i) => (
+            {/* Pergunta */}
+            <h3 className="text-xl font-black text-white leading-snug mb-6">{currentQ.texto}</h3>
+
+            {/* Opções Likert */}
+            <div className="flex flex-col gap-2 mb-4">
+              {LIKERT_OPTIONS.map((opt, i) => {
+                const isSelected = currentAnswer === opt.pontos;
+                const isNA = opt.pontos === null;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleAnswer(currentQ.id, opt.pontos)}
+                    className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${
+                      isSelected
+                        ? isNA
+                          ? "border-slate-500 bg-slate-700 text-slate-200"
+                          : "border-blue-500 bg-blue-600/20 text-white"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-600 hover:text-white"
+                    }`}
+                  >
+                    {opt.texto}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Campo de Comentário (toggle) */}
+            <div className="mt-2">
+              {!showComment ? (
                 <button
-                  key={i}
-                  onClick={() => handleAnswer(currentQ.id, opt.pontos, i === 0 ? 1 : (i === 2 ? -1 : 0))}
-                  className="w-full text-left p-4 rounded-2xl border border-slate-800 bg-slate-950 hover:bg-slate-800 transition-all flex items-center group active:scale-95"
+                  onClick={() => setShowComment(true)}
+                  className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
                 >
-                  <span className="text-3xl mr-4 group-hover:scale-110 transition-transform">{opt.emoji}</span>
-                  <span className="text-sm font-bold text-slate-300 group-hover:text-white">{opt.texto}</span>
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Adicionar comentário a esta resposta
                 </button>
-              ))}
+              ) : (
+                <div>
+                  <textarea
+                    className="w-full p-3 text-sm rounded-xl border border-slate-700 bg-slate-950 text-white resize-none h-20 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                    placeholder={currentQ.comentario_placeholder || "Comentário opcional..."}
+                    maxLength={150}
+                    value={comments[currentQ.id] || ""}
+                    onChange={(e) => setComments(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
+                  />
+                  <div className="text-right text-xs text-slate-600 mt-1">
+                    {(comments[currentQ.id] || "").length}/150
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
+      {/* Navegação */}
+      <div className="w-full max-w-xl flex gap-3 mt-4 z-10">
+        <button
+          onClick={goPrev}
+          disabled={step === 0}
+          className="px-5 py-3 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-600 disabled:opacity-30 transition-all font-bold text-sm"
+        >
+          ← Anterior
+        </button>
+        <button
+          onClick={goNext}
+          disabled={!hasAnswer}
+          className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold rounded-xl transition-all text-sm"
+        >
+          {step === questions.length - 1 ? "Concluir →" : "Seguinte →"}
+        </button>
+      </div>
     </div>
   );
 }

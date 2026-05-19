@@ -33,7 +33,7 @@ const ProgressBar = ({ score, max, label, isContextual }: { score: number, max: 
 };
 
 // ─── CONFIGURAÇÃO DE ALGORITMO ────────────────────────────────────────────────
-const GLOBAL_AVERAGE = 65; // User approved
+const GLOBAL_AVERAGE = 70; // Escala 1-5
 const K_FACTOR = 10;
 const SPEED_THRESHOLD_MS = 30000;
 
@@ -48,20 +48,20 @@ const CONTEXTUAL_DIMS = ["acessos_mobilidade", "seguranca_envolvente"];
 
 // Pesos Normalizados das Sub-dimensões Controláveis
 const SUB_WEIGHTS_TRANSVERSAIS: Record<string, number> = {
-  "edificio_conforto": 40 / 65,
-  "higiene_sanitaria": 25 / 65,
+  "edificio_conforto": 40 / 70,
+  "higiene_sanitaria": 30 / 70,
 };
 const SUB_WEIGHTS_PRE: Record<string, number> = {
   "afeto_vinculo": 0.30, "seguranca_fisica": 0.20, "higiene_saude": 0.20, "qualidade_pedagogica": 0.15, "comunicacao_pais": 0.15
 };
 const SUB_WEIGHTS_1_CICLO: Record<string, number> = {
-  "aprendizagem_progresso": 0.30, "bem_estar_fisico_emocional": 0.25, "seguranca_convivencia": 0.20, "relacao_professor_aluno": 0.15, "capacidade_resposta": 0.10
+  "aprendizagem_progresso": 0.30, "bem_estar_fisico": 0.15, "bem_estar_emocional": 0.10, "seguranca_convivencia": 0.20, "relacao_professor_aluno": 0.15, "capacidade_resposta": 0.10
 };
 const SUB_WEIGHTS_2_3_CICLO: Record<string, number> = {
-  "acompanhamento_vinculo": 0.25, "clima_social_seguranca": 0.25, "qualidade_pedagogica": 0.20, "saude_mental_emocional": 0.20, "condicoes_fisicas": 0.10
+  "acompanhamento_vinculo": 0.25, "clima_social": 0.10, "clima_social_seguranca": 0.15, "qualidade_pedagogica": 0.20, "saude_mental_emocional": 0.20, "higiene_sanitaria": 0.10
 };
 const SUB_WEIGHTS_SECUNDARIO: Record<string, number> = {
-  "pressao_academica_burnout": 30 / 85, "orientacao_futuro": 20 / 85, "qualidade_docente": 20 / 85, "saude_mental": 15 / 85
+  "pressao_academica": 0.20, "orientacao_futuro": 0.20, "qualidade_docente": 0.15, "saude_mental": 0.15, "comunicacao_pais": 0.10, "qualidade_pedagogica": 0.10, "avaliacao_geral": 0.10
 };
 
 const mapSubWeights = (level: string) => {
@@ -128,15 +128,15 @@ function calculateScore(reviews: any[], level: string) {
   // Importação estática (P1 a P45) - simulada para a lógica
   const questionMap: Record<string, string[]> = {
     // Transversais
-    P1: ["edificio_conforto"], P2: ["edificio_conforto"], P3: ["edificio_conforto", "higiene_sanitaria"], P4: ["acessos_mobilidade"], P5: ["acessos_mobilidade"],
+    P1: ["edificio_conforto"], P2: ["edificio_conforto"], P3: ["higiene_sanitaria"], P4: ["acessos_mobilidade"], P5: ["acessos_mobilidade"],
     // Pre-Escolar
-    P6: ["afeto_vinculo"], P7: ["afeto_vinculo"], P8: ["afeto_vinculo"], P9: ["qualidade_pedagogica"], P10: ["higiene_saude"], P11: ["higiene_saude"], P12: ["seguranca_fisica"], P13: ["comunicacao_pais"], P14: ["seguranca_fisica"], P15: ["qualidade_pedagogica"],
+    P6: ["afeto_vinculo"], P7: ["afeto_vinculo"], P8: ["qualidade_pedagogica"], P9: ["comunicacao_pais"], P10: ["higiene_saude"], P11: ["higiene_saude"], P12: ["seguranca_fisica"], P13: ["comunicacao_pais"], P14: ["seguranca_fisica"], P15: ["qualidade_pedagogica"],
     // 1 Ciclo
-    P16: ["aprendizagem_progresso"], P17: ["aprendizagem_progresso"], P18: ["bem_estar_fisico_emocional"], P19: ["bem_estar_fisico_emocional"], P20: ["seguranca_convivencia"], P21: ["relacao_professor_aluno"], P22: ["capacidade_resposta"], P23: ["seguranca_convivencia"], P24: ["bem_estar_fisico_emocional"], P25: ["aprendizagem_progresso"],
+    P16: ["aprendizagem_progresso"], P17: ["aprendizagem_progresso"], P18: ["bem_estar_fisico"], P19: ["bem_estar_fisico"], P20: ["seguranca_convivencia"], P21: ["relacao_professor_aluno"], P22: ["capacidade_resposta"], P23: ["seguranca_convivencia"], P24: ["bem_estar_emocional"], P25: ["aprendizagem_progresso"],
     // 2/3 Ciclo
-    P26: ["acompanhamento_vinculo"], P27: ["clima_social_seguranca"], P28: ["clima_social_seguranca"], P29: ["condicoes_fisicas"], P30: ["clima_social_seguranca"], P31: ["qualidade_pedagogica"], P32: ["saude_mental_emocional"], P33: ["qualidade_pedagogica"], P34: ["saude_mental_emocional"], P35: ["acompanhamento_vinculo"],
+    P26: ["acompanhamento_vinculo"], P27: ["clima_social"], P28: ["clima_social_seguranca"], P29: ["higiene_sanitaria"], P30: ["clima_social_seguranca"], P31: ["qualidade_pedagogica"], P32: ["saude_mental_emocional"], P33: ["qualidade_pedagogica"], P34: ["saude_mental_emocional"], P35: ["acompanhamento_vinculo"],
     // Secundario
-    P36: ["pressao_academica_burnout"], P37: ["orientacao_futuro"], P38: ["seguranca_envolvente"], P39: ["qualidade_docente"], P40: ["pressao_academica_burnout"], P41: ["pressao_academica_burnout"], P42: ["orientacao_futuro"], P43: ["saude_mental"], P44: ["qualidade_docente"], P45: ["saude_mental"]
+    P36: ["pressao_academica"], P37: ["orientacao_futuro"], P38: ["seguranca_envolvente"], P39: ["qualidade_docente"], P40: ["pressao_academica"], P41: ["comunicacao_pais"], P42: ["orientacao_futuro"], P43: ["saude_mental"], P44: ["qualidade_pedagogica"], P45: ["avaliacao_geral"]
   };
 
   let npsCounts = { promoters: 0, passives: 0, detractors: 0 };
@@ -146,11 +146,16 @@ function calculateScore(reviews: any[], level: string) {
     const weight = r.decayWeight;
     
     Object.entries(r.answers).forEach(([qId, val]) => {
+      // Excluir metadata, comentários e valores null (N/A)
+      if (qId.includes('_comentario') || val === null || val === undefined) return;
+
       const pontuacao = Number(val);
+      if (isNaN(pontuacao) || pontuacao < 1) return;
+
       if (qId === 'nps_recomendacao') {
-        if (pontuacao === 3) npsCounts.promoters++;
-        else if (pontuacao === 2) npsCounts.passives++;
-        else if (pontuacao === 1) npsCounts.detractors++;
+        if (pontuacao === 5) npsCounts.promoters++;
+        else if (pontuacao === 4) npsCounts.passives++;
+        else if (pontuacao >= 1 && pontuacao <= 3) npsCounts.detractors++;
         return;
       }
       
@@ -159,7 +164,7 @@ function calculateScore(reviews: any[], level: string) {
         for (const sd of subDims) {
           if (!subSums[sd]) subSums[sd] = { points: 0, maxPoints: 0 };
           subSums[sd].points += (pontuacao * weight);
-          subSums[sd].maxPoints += (3 * weight); // Max is 3 points per question
+          subSums[sd].maxPoints += (5 * weight); // Max is 5 points per question
         }
       }
     });
