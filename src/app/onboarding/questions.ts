@@ -8,6 +8,7 @@ export type Question = {
   sub_dimensao: string | string[];
   texto: string;
   comentario_placeholder?: string; // Sugestão de contexto para o campo de comentário
+  opcoes_custom?: Option[]; // Opções personalizadas (se undefined, usa a escala Likert padrão)
 };
 
 // Opções Likert padronizadas (sem emojis)
@@ -330,7 +331,13 @@ export const getQuestionsForLevel = (level: string): Question[] => {
     id: "nps_recomendacao",
     sub_dimensao: "nps",
     texto: "Recomendaria esta escola a um familiar ou amigo?",
-    comentario_placeholder: "O que mais influenciou a sua resposta?"
+    comentario_placeholder: "O que mais influenciou a sua resposta?",
+    opcoes_custom: [
+      { texto: "Recomendo", pontos: 5 },
+      { texto: "Neutro", pontos: 4 },
+      { texto: "Não recomendo", pontos: 1 },
+      { texto: "Não sei / Não se aplica", pontos: null },
+    ]
   };
 
   // Baralhar os blocos mas manter o NPS no final e os transversais no início

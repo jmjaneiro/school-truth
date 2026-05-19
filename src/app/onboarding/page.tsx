@@ -305,9 +305,9 @@ export default function OnboardingWizard() {
             {/* Pergunta */}
             <h3 className="text-xl font-black text-white leading-snug mb-6">{currentQ.texto}</h3>
 
-            {/* Opções Likert */}
+            {/* Opções Likert ou Custom */}
             <div className="flex flex-col gap-2 mb-4">
-              {LIKERT_OPTIONS.map((opt, i) => {
+              {(currentQ.opcoes_custom || LIKERT_OPTIONS).map((opt, i) => {
                 const isSelected = currentAnswer === opt.pontos;
                 const isNA = opt.pontos === null;
                 return (
