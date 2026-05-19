@@ -253,8 +253,24 @@ export default async function SchoolReportPage({ params, searchParams }: { param
   const isEarly = totalCount >= 15 && totalCount <= 30;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-20">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 relative overflow-hidden">
+      {/* Background Video & Overlays (Light Theme Adaptation) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.15] grayscale contrast-125"
+        >
+          <source src="/media/map.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/90 via-slate-50/80 to-slate-50"></div>
+        <div className="absolute inset-0 bg-[url('/textures/noise.svg')] opacity-[0.03] mix-blend-multiply"></div>
+      </div>
+
+      <header className="bg-white/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/resultados" className="flex items-center text-slate-500 hover:text-slate-900 font-bold transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" /> Voltar aos Resultados
@@ -266,8 +282,8 @@ export default async function SchoolReportPage({ params, searchParams }: { param
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mb-8">
+      <main className="max-w-4xl mx-auto px-6 py-10 relative z-10">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">{school.nome}</h1>
